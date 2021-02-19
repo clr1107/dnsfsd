@@ -92,8 +92,12 @@ func DownloadPattern(url string, filename string) (int, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		return 0, fmt.Errorf("HTTP request to '%v' gave a %v status code", url, resp.StatusCode)
+	}
+
 	const directory string = "/etc/dnsfsd/patterns"
-	if err := os.MkdirAll(directory, 0666); err != nil {
+	if err := os.MkdirAll(directory, os.FileMode(0755)); err != nil {
 		return 0, err
 	}
 

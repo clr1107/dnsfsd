@@ -10,7 +10,7 @@ import (
 
 var (
 	downloadCmd = &cobra.Command{
-		Use:   "download <path> <name>",
+		Use:   "download <url> <destination file name>",
 		Short: "Download a third party pattern",
 		Long:  `Download a text file containing regular expressions as patterns from a remote network for use in this local dns server.`,
 		RunE:  runDownloadSubCommand,
