@@ -2,6 +2,8 @@ package main
 
 import (
 	"regexp"
+
+	"github.com/clr1107/dnsfsd/cmd"
 )
 
 var (
@@ -9,5 +11,5 @@ var (
 )
 
 func main() {
-
+	cmd.ExecuteRoot()
 }
