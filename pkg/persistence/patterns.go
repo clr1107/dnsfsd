@@ -3,7 +3,9 @@ package persistence
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"regexp"
 )
@@ -18,7 +20,7 @@ func (p *PatternFile) Load() error {
 	f, err := os.Open(p.Path)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("could not open pattern file '%v'", p.Path)
 	}
 
 	defer f.Close()
@@ -30,7 +32,7 @@ func (p *PatternFile) Load() error {
 		pattern, err := regexp.Compile(text)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("could not parse regular expression '%v'", text)
 		}
 
 		patterns = append(patterns, pattern)
@@ -80,4 +82,26 @@ func LoadAllPatternFiles(path string) ([]*PatternFile, error) {
 	}
 
 	return successes, nil
+}
+
+func DownloadPattern(url string, path string) (int64, error) {
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return 0, fmt.Errorf("could not download from url: '%v'", url)
+	}
+	defer resp.Body.Close()
+
+	if err := os.MkdirAll("/etc/dnsfsd/patterns", 0666); err != nil {
+		return 0, err
+	}
+
+	out, err := os.Create(path)
+
+	if err != nil {
+		return 0, fmt.Errorf("could not create file '%v'", path)
+	}
+	defer out.Close()
+
+	return io.Copy(out, resp.Body)
 }
