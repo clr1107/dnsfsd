@@ -84,7 +84,7 @@ func LoadAllPatternFiles(path string) ([]*PatternFile, error) {
 	return successes, nil
 }
 
-func DownloadPattern(url string, path string) (int64, error) {
+func DownloadPattern(url string, filename string) (int, error) {
 	resp, err := http.Get(url)
 
 	if err != nil {
@@ -92,16 +92,29 @@ func DownloadPattern(url string, path string) (int64, error) {
 	}
 	defer resp.Body.Close()
 
-	if err := os.MkdirAll("/etc/dnsfsd/patterns", 0666); err != nil {
+	const directory string = "/etc/dnsfsd/patterns"
+	if err := os.MkdirAll(directory, 0666); err != nil {
 		return 0, err
 	}
 
-	out, err := os.Create(path)
+	filepath := directory + string(os.PathSeparator) + filename
+	out, err := os.Create(filepath)
 
 	if err != nil {
-		return 0, fmt.Errorf("could not create file '%v'", path)
+		return 0, fmt.Errorf("could not create file '%v'", filepath)
 	}
 	defer out.Close()
 
-	return io.Copy(out, resp.Body)
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	patternFile := &PatternFile{filepath, false, nil}
+
+	if err := patternFile.Load(); err != nil {
+		return 0, err
+	} else {
+		return len(patternFile.Patterns), nil
+	}
 }

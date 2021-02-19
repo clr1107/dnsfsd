@@ -12,6 +12,7 @@ var (
 
 func init() {
 	rootCmd.AddCommand(patternsCmd)
+	rootCmd.AddCommand(downloadCmd)
 }
 
 func ExecuteRoot() error {
