@@ -1,29 +1,37 @@
 #!/bin/bash
 
-if [ "$EUID" -ne 0 ]; then
-    echo "Run this script as root: sudo bash install.sh"
+if [ $EUID -ne 0 ]; then
+    echo "You must have root permissions to run this script"
     exit 1
 fi
 
-echo "Creating necessary directories"
-mkdir -p /etc/dnsfd/patterns
+echo "Building binaries..."
 
+go build -o dnsfs dnsfsd-util/main.go
 if [ $? -ne 0 ]; then
-    echo "Could not create directories /etc/dnsfsd/..."
+    echo "Could not build dnsfsd-util"
     exit 1
 fi
 
-mkdir -p /var/log/dnsfsd
+go build -o dnsfsd daemon
 if [ $? -ne 0 ]; then
-    echo "Could not create directory /var/log/dnsfsd"
+    echo "Could not build daemon"
     exit 1
 fi
 
-echo "Moving binary & updating permissions"
-mv dnsfsd /bin/dnsfsd
-chmod +x /bin/dnsfsd
+echo "Built binaries"
 
+mv dnsfsd-util/dnsfs usr/local/bin/dnsfs
 if [ $? -ne 0 ]; then
-    echo "Could not move `dnsfsd` to `/bin/dnsfsd`"
+    echo "Could not move the built dnsfs binary to /usr/local/bin"
     exit 1
 fi
+
+mv daemon/dnsfsd /usr/local/bin/dnsfsd
+if [ $? -ne 0 ]; then
+    echo "Could not move the built dnsfsd binary to /usr/local/bin"
+    exit 1
+fi
+
+echo "Moved binaries"
+echo "Install finished! Run \`dnsfs setup\` before starting dnsfsd"

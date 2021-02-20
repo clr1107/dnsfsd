@@ -17,6 +17,7 @@ var (
 func init() {
 	rootCmd.AddCommand(patternsCmd)
 	rootCmd.AddCommand(downloadCmd)
+	rootCmd.AddCommand(setupCmd)
 }
 
 func ExecuteRoot() error {
