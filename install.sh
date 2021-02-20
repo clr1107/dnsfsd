@@ -7,27 +7,33 @@ fi
 
 echo "Building binaries..."
 
-go build -o dnsfs dnsfsd-util/main.go
+cd dnsfsd-util
+/usr/local/go/bin/go build -o dnsfs .
+
 if [ $? -ne 0 ]; then
     echo "Could not build dnsfsd-util"
     exit 1
 fi
+cd ../
 
-go build -o dnsfsd daemon
+cd daemon
+/usr/local/go/bin/go build -o dnsfsd .
+
 if [ $? -ne 0 ]; then
     echo "Could not build daemon"
     exit 1
 fi
+cd ../
 
 echo "Built binaries"
 
-mv dnsfsd-util/dnsfs usr/local/bin/dnsfs
+mv dnsfsd-util/dnsfs /usr/local/bin/ > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "Could not move the built dnsfs binary to /usr/local/bin"
     exit 1
 fi
 
-mv daemon/dnsfsd /usr/local/bin/dnsfsd
+mv daemon/dnsfsd /usr/local/bin/ > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "Could not move the built dnsfsd binary to /usr/local/bin"
     exit 1
