@@ -84,6 +84,18 @@ func LoadAllPatternFiles(path string) ([]*PatternFile, error) {
 	return successes, nil
 }
 
+func CollectAllPatterns(files []*PatternFile) []*regexp.Regexp {
+	l := make([]*regexp.Regexp, 0, len(files))
+
+	for _, v := range files {
+		if v.Loaded {
+			l = append(l, v.Patterns...)
+		}
+	}
+
+	return l
+}
+
 func DownloadPattern(url string, filename string) (int, error) {
 	resp, err := http.Get(url)
 
