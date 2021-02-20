@@ -13,6 +13,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+mkdir -p /var/log/dnsfsd
+if [ $? -ne 0 ]; then
+    echo "Could not create directory /var/log/dnsfsd"
+    exit 1
+fi
+
 echo "Moving binary & updating permissions"
 mv dnsfsd /bin/dnsfsd
 chmod +x /bin/dnsfsd

@@ -1,12 +1,13 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/clr1107/dnsfsd/daemon/logger"
 	"github.com/clr1107/dnsfsd/pkg/persistence"
 	"github.com/miekg/dns"
 )
@@ -17,19 +18,14 @@ type DNSFSServer struct {
 	Handler *DNSFSHandler
 }
 
-func (s *DNSFSServer) Init() error {
+func NewServer(port int, handler *DNSFSHandler) *DNSFSServer {
+	s := &DNSFSServer{Port: port}
+
 	s.Server = &dns.Server{Addr: ":" + strconv.Itoa(s.Port), Net: "udp"}
+	s.Server.Handler = handler
+	s.Handler = handler
 
-	files, err := persistence.LoadAllPatternFiles("/etc/dnsfsd/patterns")
-	if err != nil {
-		return err
-	}
-
-	patterns := persistence.CollectAllPatterns(files)
-	s.Handler = newHandler(patterns) // just copy it accross to our own struct.
-
-	s.Server.Handler = s.Handler
-	return nil
+	return s
 }
 
 func (s *DNSFSServer) Shutdown() error {
@@ -42,11 +38,14 @@ func (s *DNSFSServer) Shutdown() error {
 type DNSFSHandler struct {
 	patterns     []*regexp.Regexp
 	cache        *persistence.SimpleCache
+	forwards     []string
 	ErrorChannel chan error
+	verbose      bool
+	logger       *logger.Logger
 }
 
-func newHandler(patterns []*regexp.Regexp) *DNSFSHandler {
-	return &DNSFSHandler{patterns, persistence.NewSimpleCache(-1), make(chan error)}
+func NewHandler(patterns []*regexp.Regexp, forwards []string, verbose bool, logger *logger.Logger) *DNSFSHandler {
+	return &DNSFSHandler{patterns, persistence.NewSimpleCache(-1), forwards, make(chan error), verbose, logger}
 }
 
 // true => sink; false => nothing found
@@ -64,27 +63,42 @@ func (h *DNSFSHandler) checkPatterns(domain string) bool {
 func (h *DNSFSHandler) check(domain string) bool {
 	if h.cache.Contains(domain) {
 		if val, ok := h.cache.Get(domain).(bool); ok {
+			if h.verbose && val {
+				h.logger.Log("(%v) in cache => sinkhole", domain)
+			}
+
 			return val
+		}
+
+		if h.verbose {
+			h.logger.LogErr("(%v) in cache, non-boolean value, removing", domain)
 		}
 
 		h.cache.Remove(domain) // for some reason not a bool?
 	}
 
 	if h.checkPatterns(domain) {
+		if h.verbose {
+			h.logger.Log("(%v) matched pattern(s), putting in cache => sink", domain)
+		}
+
 		h.cache.PutDefault(domain, true)
 		return true
+	} else if h.verbose {
+		h.logger.Log("(%v) matched no patterns, putting in cache => pass", domain)
 	}
 
+	h.cache.PutDefault(domain, false)
 	return false
 }
 
-func (h *DNSFSHandler) forward(w *dns.ResponseWriter, r *dns.Msg, dnsAddress string) {
+func (h *DNSFSHandler) forward(w *dns.ResponseWriter, r *dns.Msg, dnsAddress string) error {
+	if h.verbose {
+		h.logger.Log("(%v) forwarding to %v", r.Question[0].Name, strings.Replace(dnsAddress, ":", "#", 1))
+	}
+
 	c := new(dns.Client)
 	x, _, err := c.Exchange(r, dnsAddress)
-
-	if strings.Contains(r.Question[0].Name, "errorpls") {
-		err = errors.New("random err")
-	}
 
 	if err != nil || x == nil {
 		if x == nil {
@@ -96,25 +110,54 @@ func (h *DNSFSHandler) forward(w *dns.ResponseWriter, r *dns.Msg, dnsAddress str
 		x = &dns.Msg{}
 		x.SetReply(r)
 		x.Authoritative = r.Authoritative
+
+		return err
 	}
 
-	(*w).WriteMsg(x)
+	return (*w).WriteMsg(x)
 }
 
 func (h *DNSFSHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
+	start := time.Now()
+
 	aType := r.Question[0].Qtype == dns.TypeA
 
-	if aType {
-		msg := dns.Msg{}
-		msg.SetReply(r)
-		msg.Authoritative = true
+	msg := dns.Msg{}
+	msg.SetReply(r)
+	msg.Authoritative = true
+	domain := msg.Question[0].Name
 
-		domain := msg.Question[0].Name
+	if aType {
+		if h.verbose {
+			h.logger.Log("A; %v", domain)
+		}
+
 		if h.check(domain) {
+			if h.verbose {
+				h.logger.Log("(%v) sinking [%v from start]", domain, time.Since(start))
+			}
+
 			w.WriteMsg(&msg) // just sink right now
 			return
 		}
+	} else if h.verbose {
+		h.logger.Log("non A DNS request; forwarding")
 	}
 
-	go h.forward(&w, r, "1.1.1.1:53")
+	go func() {
+		if h.verbose {
+			h.logger.Log("(%v) starting forwarding process [%v from start]", domain, time.Since(start))
+		}
+
+		for _, v := range h.forwards {
+			if h.forward(&w, r, v) == nil {
+				if h.verbose {
+					h.logger.Log("(%v) passing on response from %v [%v from start]", domain, strings.Replace(v, ":", "#", 1), time.Since(start))
+				}
+				return
+			}
+		}
+
+		h.ErrorChannel <- fmt.Errorf("errors upon all forwarding destinations for domain '%v'", domain)
+	}()
 }
