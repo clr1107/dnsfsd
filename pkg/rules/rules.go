@@ -40,8 +40,12 @@ func (p *RuleFile) Load() error {
 
 	for scanner.Scan() {
 		text := scanner.Text()
-		split := strings.SplitN(text, ";", 3)
 
+		if len(text) > 0 && text[0] == '#' {
+			continue
+		}
+
+		split := strings.SplitN(text, ";", 3)
 		var ruleText string
 		var whitelist bool = false
 

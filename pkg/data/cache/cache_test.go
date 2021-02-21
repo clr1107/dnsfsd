@@ -1,4 +1,4 @@
-package data
+package cache
 
 import (
 	"strconv"
@@ -69,5 +69,33 @@ func TestSize(t *testing.T) {
 
 	if size != 0 {
 		t.Fatalf("cache was cleared and size is %v, not 0", size)
+	}
+}
+
+func TestSerialisation(t *testing.T) {
+	cache := NewDNSCache(-1)
+
+	cache.PutDefault("one", 1)
+	cache.PutDefault("two", 2)
+	cache.PutDefault("three", 3)
+
+	buffer, err := cache.Serialise()
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+
+	deserialised, err := DeserialiseDNSCache(buffer)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+
+	if deserialised.Size() != cache.Size() {
+		t.Fatalf("deserialised's size is not equal to the original")
+	}
+
+	for k, v := range deserialised.Data {
+		if v.Val != cache.Data[k].Val {
+			t.Fatalf("one or more elements are not correct. %v != %v", v.Val, cache.Data[k].Val)
+		}
 	}
 }

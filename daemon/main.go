@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/clr1107/dnsfsd/pkg/data/cache"
+	"github.com/clr1107/dnsfsd/pkg/data/config"
 	"os"
 	"os/signal"
 	"strings"
@@ -9,7 +11,6 @@ import (
 
 	"github.com/clr1107/dnsfsd/daemon/logger"
 	"github.com/clr1107/dnsfsd/daemon/server"
-	"github.com/clr1107/dnsfsd/pkg/data"
 	"github.com/clr1107/dnsfsd/pkg/rules"
 	"github.com/spf13/viper"
 )
@@ -47,7 +48,7 @@ func spawnSignalRoutine(srv *server.DNSFSServer) {
 func main() {
 	println(strings.Repeat("=", 80))
 
-	if err := data.InitConfig(); err != nil {
+	if err := config.InitConfig(); err != nil {
 		fmt.Printf("main() init config: %v\n", err)
 		return
 	}
@@ -56,21 +57,29 @@ func main() {
 	port := viper.GetInt("port")
 	forwards := viper.GetStringSlice("forwards")
 	verbose := viper.GetBool("verbose")
+	cacheTTL := config.GetCacheTime()
 
 	if err := log.Init(logPath); err != nil {
 		fmt.Printf("main() init loggers: %v\n", err)
 		os.Exit(1)
 	}
 
-	rules, err := loadRules()
+	loadedRules, err := loadRules()
 	if err != nil {
 		log.LogFatal("main() loading rules: %v", err)
 	} else {
-		log.Log("loaded %v rules", rules.Size())
+		log.Log("loaded %v rules", loadedRules.Size())
 	}
 
-	srv := server.NewServer(port, server.NewHandler(rules, forwards, verbose, log))
+	dnsCache, err := cache.DNSCacheFromFile("/etc/dnsfsd/dns.cache")
+	if err != nil {
+		log.LogErr("could not load dns cache file, creating new DNSCache")
+		dnsCache = cache.NewDNSCache(cacheTTL)
+	} else {
+		log.Log("loaded %v requests from the disk cache", dnsCache.Size())
+	}
 
+	srv := server.NewServer(port, server.NewHandler(loadedRules, dnsCache, forwards, verbose, log))
 	spawnSignalRoutine(srv)
 
 	go func() {

@@ -1,7 +1,8 @@
-package data
+package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -21,6 +22,7 @@ func InitConfig() error {
 	viper.SetDefault("forwards", []string{"1.0.0.1:53", "1.1.1.1:53"})
 	viper.SetDefault("log", "/var/log/dnsfsd/log.txt")
 	viper.SetDefault("verbose", false)
+	viper.SetDefault("cache", 86400)
 
 	if err := viper.ReadInConfig(); err == nil {
 		ConfigLoaded = true
@@ -29,4 +31,9 @@ func InitConfig() error {
 	}
 
 	return nil
+}
+
+func GetCacheTime() time.Duration {
+	x := viper.GetInt("cache")
+	return time.Duration(x) * time.Second
 }
