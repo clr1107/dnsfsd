@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"regexp"
 	"strings"
 	"syscall"
 
@@ -18,14 +17,14 @@ var (
 	log *logger.Logger = &logger.Logger{}
 )
 
-func loadPatterns() ([]*regexp.Regexp, error) {
-	files, err := persistence.LoadAllPatternFiles("/etc/dnsfsd/patterns")
+func loadRules() (*[]persistence.IRule, error) {
+	files, err := persistence.LoadAllRuleFiles("/etc/dnsfsd/rules")
 
 	if err != nil {
 		return nil, err
 	}
 
-	return persistence.CollectAllPatterns(files), nil
+	return persistence.CollectAllRules(files), nil
 }
 
 func spawnSignalRoutine(srv *server.DNSFSServer) {
@@ -62,14 +61,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	patterns, err := loadPatterns()
+	rules, err := loadRules()
 	if err != nil {
-		log.LogFatal("main() loading patterns: %v", err)
+		log.LogFatal("main() loading rules: %v", err)
 	} else {
-		log.Log("loaded %v patterns", len(patterns))
+		log.Log("loaded %v rules", len(*rules))
 	}
 
-	srv := server.NewServer(port, server.NewHandler(patterns, forwards, verbose, log))
+	srv := server.NewServer(port, server.NewHandler(rules, forwards, verbose, log))
 
 	spawnSignalRoutine(srv)
 

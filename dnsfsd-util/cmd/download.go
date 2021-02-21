@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"net/url"
+	"path"
 
 	"github.com/clr1107/dnsfsd/pkg/persistence"
 	"github.com/spf13/cobra"
@@ -27,12 +28,12 @@ func runDownloadSubCommand(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	patterns, err := persistence.DownloadPattern(u.String(), args[1])
+	patterns, err := persistence.DownloadRuleFile(u.String(), args[1])
 
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Downloaded '%v' to %v (%v patterns)\n", u.String(), "/etc/dnsfsd/patterns/"+args[1], patterns)
+	fmt.Printf("Downloaded '%v' to %v (%v patterns)\n", u.String(), path.Join("/etc/dnsfsd/rules", args[1]), patterns)
 	return nil
 }

@@ -12,15 +12,15 @@ var (
 	remove bool
 
 	patternsCmd = &cobra.Command{
-		Use:   "patterns",
-		Short: "List patterns",
-		Long:  `List all the patterns currently being matched.`,
+		Use:   "rules",
+		Short: "List rules",
+		Long:  `List all the rules currently being matched.`,
 		RunE:  runPatternsSubCommand,
 	}
 )
 
-func loadPatterns() ([]*persistence.PatternFile, error) {
-	return persistence.LoadAllPatternFiles("/etc/dnsfsd/patterns")
+func loadRules() (*[]persistence.RuleFile, error) {
+	return persistence.LoadAllRuleFiles("/etc/dnsfsd/rules")
 }
 
 func runPatternsSubCommand(cmd *cobra.Command, args []string) error {
@@ -28,7 +28,7 @@ func runPatternsSubCommand(cmd *cobra.Command, args []string) error {
 		return cmd.Help()
 	}
 
-	files, err := loadPatterns()
+	files, err := loadRules()
 
 	if err != nil {
 		return err
@@ -36,22 +36,22 @@ func runPatternsSubCommand(cmd *cobra.Command, args []string) error {
 
 	numOfPatterns := 0
 
-	for _, v := range files {
-		numOfPatterns += len(v.Patterns)
+	for _, v := range *files {
+		numOfPatterns += len(*v.Rules)
 	}
 
-	header := fmt.Sprintf("Matching %v patterns", numOfPatterns)
+	header := fmt.Sprintf("Matching %v rules", numOfPatterns)
 	println(header)
 	println(strings.Repeat("=", len(header)))
 
-	for _, i := range files {
+	for _, i := range *files {
 		println()
 
 		header := fmt.Sprintf("File '%v'", i.Path)
 		println(header)
 		println(strings.Repeat("-", len(header)))
 
-		for k, j := range i.Patterns {
+		for k, j := range *i.Rules {
 			fmt.Printf("%v)  '%v'\n", k+1, j)
 		}
 

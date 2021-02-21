@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -36,7 +35,7 @@ func (s *DNSFSServer) Shutdown() error {
 }
 
 type DNSFSHandler struct {
-	patterns     []*regexp.Regexp
+	rules        *[]persistence.IRule
 	cache        *persistence.SimpleCache
 	forwards     []string
 	ErrorChannel chan error
@@ -44,14 +43,17 @@ type DNSFSHandler struct {
 	logger       *logger.Logger
 }
 
-func NewHandler(patterns []*regexp.Regexp, forwards []string, verbose bool, logger *logger.Logger) *DNSFSHandler {
-	return &DNSFSHandler{patterns, persistence.NewSimpleCache(-1), forwards, make(chan error), verbose, logger}
+func NewHandler(rules *[]persistence.IRule, forwards []string, verbose bool, logger *logger.Logger) *DNSFSHandler {
+	return &DNSFSHandler{rules, persistence.NewSimpleCache(-1), forwards, make(chan error), verbose, logger}
 }
 
 // true => sink; false => nothing found
-func (h *DNSFSHandler) checkPatterns(domain string) bool {
-	for _, pattern := range h.patterns {
-		if pattern.MatchString(domain) {
+func (h *DNSFSHandler) checkRules(domain string) bool {
+	for _, rule := range *h.rules {
+		if rule.Match(domain) {
+			if h.verbose {
+				h.logger.Log("rule: '%v'", rule)
+			}
 			return true
 		}
 	}
@@ -59,7 +61,7 @@ func (h *DNSFSHandler) checkPatterns(domain string) bool {
 	return false
 }
 
-// returns whether to sink or not based on cache and pattern matching
+// returns whether to sink or not based on cache and rule matching
 func (h *DNSFSHandler) check(domain string) bool {
 	if h.cache.Contains(domain) {
 		if val, ok := h.cache.Get(domain).(bool); ok {
@@ -77,15 +79,15 @@ func (h *DNSFSHandler) check(domain string) bool {
 		h.cache.Remove(domain) // for some reason not a bool?
 	}
 
-	if h.checkPatterns(domain) {
+	if h.checkRules(domain) {
 		if h.verbose {
-			h.logger.Log("(%v) matched pattern(s), putting in cache => sink", domain)
+			h.logger.Log("(%v) matched rule(s), putting in cache => sink", domain)
 		}
 
 		h.cache.PutDefault(domain, true)
 		return true
 	} else if h.verbose {
-		h.logger.Log("(%v) matched no patterns, putting in cache => pass", domain)
+		h.logger.Log("(%v) matched no rules, putting in cache => pass", domain)
 	}
 
 	h.cache.PutDefault(domain, false)

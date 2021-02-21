@@ -63,11 +63,13 @@ func (s *SimpleCache) Put(key string, val interface{}, ttl int64) bool {
 }
 
 func (s *SimpleCache) PutDefault(key string, val interface{}) bool {
-	if ttl, ok := s.defaultTtls[key]; ok {
-		return s.Put(key, val, ttl)
+	ttl, ok := s.defaultTtls[key]
+
+	if !ok {
+		ttl = s.DefaultTtl
 	}
 
-	return s.Put(key, val, s.DefaultTtl)
+	return s.Put(key, val, ttl)
 }
 
 func (s *SimpleCache) Get(key string) interface{} {

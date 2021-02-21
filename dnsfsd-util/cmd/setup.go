@@ -34,7 +34,7 @@ func runSetupSubCommand(cmd *cobra.Command, args []string) error {
 		return cmd.Help()
 	}
 
-	const etcDirectory string = "/etc/dnsfsd/patterns"
+	const etcDirectory string = "/etc/dnsfsd/rules"
 	const logDirectory string = "/var/log/dnsfsd"
 	const configDirectory string = "/etc/dnsfsd/config.yml"
 
