@@ -118,8 +118,6 @@ func (s *SimpleCache) Clear() {
 	s.lock.Lock()
 	s.data = make(map[string]simpleCacheCell)
 	s.lock.Unlock()
-
-	s.lock = &sync.RWMutex{}
 }
 
 func (s *SimpleCache) Size() int {

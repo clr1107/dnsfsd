@@ -52,7 +52,7 @@ func runPatternsSubCommand(cmd *cobra.Command, args []string) error {
 		println(strings.Repeat("-", len(header)))
 
 		for k, j := range *i.Rules {
-			fmt.Printf("%v)  '%v'\n", k+1, j)
+			fmt.Printf("%v)    %v\n", k+1, j)
 		}
 
 	}

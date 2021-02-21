@@ -24,8 +24,8 @@ type IRule interface {
 	String() string
 }
 
-func ruleToString(str string, whitelist bool) string {
-	s := "r;"
+func ruleToString(prefix string, str string, whitelist bool) string {
+	s := prefix + ";"
 
 	if whitelist {
 		s += "w"
@@ -44,7 +44,7 @@ func (r regexpRule) Match(domain string) bool {
 }
 
 func (r regexpRule) String() string {
-	return ruleToString(r.expression.String(), r.whitelist)
+	return ruleToString(regexpRulePrefix, r.expression.String(), r.whitelist)
 }
 
 type containsRule struct {
@@ -57,7 +57,7 @@ func (r containsRule) Match(domain string) bool {
 }
 
 func (r containsRule) String() string {
-	return ruleToString(r.substring, r.whitelist)
+	return ruleToString(containsRulePrefix, r.substring, r.whitelist)
 }
 
 type equalsRule struct {
@@ -66,11 +66,11 @@ type equalsRule struct {
 }
 
 func (e equalsRule) Match(domain string) bool {
-	return strings.ToLower(domain) == e.str
+	return (strings.ToLower(domain) == e.str) != e.whitelist
 }
 
 func (e equalsRule) String() string {
-	return ruleToString(e.str, e.whitelist)
+	return ruleToString(equalsRulePrefix, e.str, e.whitelist)
 }
 
 type RuleFile struct {

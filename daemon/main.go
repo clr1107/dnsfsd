@@ -33,7 +33,7 @@ func spawnSignalRoutine(srv *server.DNSFSServer) {
 
 	go func() {
 		<-signalChannel
-		log.Log("shutting down...")
+		log.Log("interrupt signal; shutting down...")
 
 		if err := srv.Shutdown(); err != nil {
 			log.LogFatal("signal listener shutting down: %v", err)
