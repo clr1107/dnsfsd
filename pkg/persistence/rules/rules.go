@@ -1,4 +1,4 @@
-package persistence
+package rules
 
 import (
 	"bufio"
@@ -18,60 +18,6 @@ const (
 	equalsRulePrefix   string = "e"
 	whitelistChar      rune   = 'w'
 )
-
-type IRule interface {
-	Match(domain string) bool
-	String() string
-}
-
-func ruleToString(prefix string, str string, whitelist bool) string {
-	s := prefix + ";"
-
-	if whitelist {
-		s += "w"
-	}
-
-	return s + ";" + str
-}
-
-type regexpRule struct {
-	expression *regexp.Regexp
-	whitelist  bool
-}
-
-func (r regexpRule) Match(domain string) bool {
-	return r.expression.MatchString(strings.ToLower(domain)) != r.whitelist
-}
-
-func (r regexpRule) String() string {
-	return ruleToString(regexpRulePrefix, r.expression.String(), r.whitelist)
-}
-
-type containsRule struct {
-	substring string
-	whitelist bool
-}
-
-func (r containsRule) Match(domain string) bool {
-	return strings.Contains(strings.ToLower(domain), r.substring) != r.whitelist
-}
-
-func (r containsRule) String() string {
-	return ruleToString(containsRulePrefix, r.substring, r.whitelist)
-}
-
-type equalsRule struct {
-	str       string
-	whitelist bool
-}
-
-func (e equalsRule) Match(domain string) bool {
-	return (strings.ToLower(domain) == e.str) != e.whitelist
-}
-
-func (e equalsRule) String() string {
-	return ruleToString(equalsRulePrefix, e.str, e.whitelist)
-}
 
 type RuleFile struct {
 	Path   string
@@ -176,7 +122,7 @@ func LoadAllRuleFiles(path string) (*[]RuleFile, error) {
 	return &successes, nil
 }
 
-func CollectAllRules(files *[]RuleFile) *[]IRule {
+func CollectAllRules(files *[]RuleFile) *RuleSet {
 	l := make([]IRule, 0, len(*files))
 
 	for _, v := range *files {
@@ -185,7 +131,7 @@ func CollectAllRules(files *[]RuleFile) *[]IRule {
 		}
 	}
 
-	return &l
+	return &RuleSet{&l}
 }
 
 func DownloadRuleFile(url string, filename string) (int, error) {

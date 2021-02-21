@@ -8,6 +8,7 @@ import (
 
 	"github.com/clr1107/dnsfsd/daemon/logger"
 	"github.com/clr1107/dnsfsd/pkg/persistence"
+	"github.com/clr1107/dnsfsd/pkg/persistence/rules"
 	"github.com/miekg/dns"
 )
 
@@ -35,7 +36,7 @@ func (s *DNSFSServer) Shutdown() error {
 }
 
 type DNSFSHandler struct {
-	rules        *[]persistence.IRule
+	rules        *rules.RuleSet
 	cache        *persistence.SimpleCache
 	forwards     []string
 	ErrorChannel chan error
@@ -43,22 +44,8 @@ type DNSFSHandler struct {
 	logger       *logger.Logger
 }
 
-func NewHandler(rules *[]persistence.IRule, forwards []string, verbose bool, logger *logger.Logger) *DNSFSHandler {
+func NewHandler(rules *rules.RuleSet, forwards []string, verbose bool, logger *logger.Logger) *DNSFSHandler {
 	return &DNSFSHandler{rules, persistence.NewSimpleCache(-1), forwards, make(chan error), verbose, logger}
-}
-
-// true => sink; false => nothing found
-func (h *DNSFSHandler) checkRules(domain string) bool {
-	for _, rule := range *h.rules {
-		if rule.Match(domain) {
-			if h.verbose {
-				h.logger.Log("rule: '%v'", rule)
-			}
-			return true
-		}
-	}
-
-	return false
 }
 
 // returns whether to sink or not based on cache and rule matching
@@ -79,9 +66,9 @@ func (h *DNSFSHandler) check(domain string) bool {
 		h.cache.Remove(domain) // for some reason not a bool?
 	}
 
-	if h.checkRules(domain) {
+	if h.rules.Test(domain) {
 		if h.verbose {
-			h.logger.Log("(%v) matched rule(s), putting in cache => sink", domain)
+			h.logger.Log("(%v) matched blacklist rule(s), putting in cache => sink", domain)
 		}
 
 		h.cache.PutDefault(domain, true)

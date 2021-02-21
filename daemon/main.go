@@ -10,6 +10,7 @@ import (
 	"github.com/clr1107/dnsfsd/daemon/logger"
 	"github.com/clr1107/dnsfsd/daemon/server"
 	"github.com/clr1107/dnsfsd/pkg/persistence"
+	"github.com/clr1107/dnsfsd/pkg/persistence/rules"
 	"github.com/spf13/viper"
 )
 
@@ -17,14 +18,14 @@ var (
 	log *logger.Logger = &logger.Logger{}
 )
 
-func loadRules() (*[]persistence.IRule, error) {
-	files, err := persistence.LoadAllRuleFiles("/etc/dnsfsd/rules")
+func loadRules() (*rules.RuleSet, error) {
+	files, err := rules.LoadAllRuleFiles("/etc/dnsfsd/rules")
 
 	if err != nil {
 		return nil, err
 	}
 
-	return persistence.CollectAllRules(files), nil
+	return rules.CollectAllRules(files), nil
 }
 
 func spawnSignalRoutine(srv *server.DNSFSServer) {
@@ -65,7 +66,7 @@ func main() {
 	if err != nil {
 		log.LogFatal("main() loading rules: %v", err)
 	} else {
-		log.Log("loaded %v rules", len(*rules))
+		log.Log("loaded %v rules", rules.Size())
 	}
 
 	srv := server.NewServer(port, server.NewHandler(rules, forwards, verbose, log))
