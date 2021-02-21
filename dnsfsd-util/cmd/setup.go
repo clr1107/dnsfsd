@@ -18,12 +18,17 @@ var (
 )
 
 // lol I'm lazy.
-const defaultConfig string = `port: 53
-forwards:
-- '1.0.0.1:53'
-- '1.1.1.1:53'
-log: '/var/log/dnsfsd/log.txt'
-verbose: false
+const defaultConfig string = `server:
+    port: 53
+    parallel_match: false
+log:
+    path: '/var/log/dnsfsd/log.txt'
+    verbose: false
+dns:
+    cache: 86400
+    forwards:
+    - '1.0.0.1:53'
+    - '1.1.1.1:53'
 `
 
 func createDirectories(path string) error {

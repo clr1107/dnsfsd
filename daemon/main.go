@@ -53,10 +53,10 @@ func main() {
 		return
 	}
 
-	logPath := viper.GetString("log")
-	port := viper.GetInt("port")
-	forwards := viper.GetStringSlice("forwards")
-	verbose := viper.GetBool("verbose")
+	logPath := viper.Sub("log").GetString("path")
+	port := viper.Sub("server").GetInt("port")
+	forwards := viper.Sub("dns").GetStringSlice("forwards")
+	verbose := viper.Sub("log").GetBool("verbose")
 	cacheTTL := config.GetCacheTime()
 
 	if err := log.Init(logPath); err != nil {

@@ -18,11 +18,11 @@ func InitConfig() error {
 	viper.GetViper().SetConfigFile("/etc/dnsfsd/config.yml")
 	viper.SetConfigType("yaml")
 
-	viper.SetDefault("port", 53)
-	viper.SetDefault("forwards", []string{"1.0.0.1:53", "1.1.1.1:53"})
-	viper.SetDefault("log", "/var/log/dnsfsd/log.txt")
-	viper.SetDefault("verbose", false)
-	viper.SetDefault("cache", 86400)
+	viper.Sub("server").SetDefault("port", 53)
+	viper.Sub("dns").SetDefault("forwards", []string{"1.0.0.1:53", "1.1.1.1:53"})
+	viper.Sub("log").SetDefault("path", "/var/log/dnsfsd/log.txt")
+	viper.Sub("log").SetDefault("verbose", false)
+	viper.Sub("dns").SetDefault("cache", 86400)
 
 	if err := viper.ReadInConfig(); err == nil {
 		ConfigLoaded = true
