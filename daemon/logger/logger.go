@@ -6,11 +6,14 @@ import (
 	"os"
 )
 
+// Logger holds two log.Logger
 type Logger struct {
 	infoLogger  *log.Logger
 	errorLogger *log.Logger
 }
 
+// Init initialises a Logger object by opening the given path and creating two
+// loggers (info & error) that output to both stdout and the file.
 func (l *Logger) Init(path string) error {
 	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 
@@ -39,14 +42,18 @@ func (l *Logger) log0(err bool, msg string, v ...interface{}) {
 	x.Printf(msg, v...)
 }
 
+// Log logs a regular message with formatting (as defined by fmt.Printf)
 func (l *Logger) Log(msg string, v ...interface{}) {
 	l.log0(false, msg, v...)
 }
 
+// LogErr logs an error message with formatting (as defined by fmt.Printf)
 func (l *Logger) LogErr(msg string, v ...interface{}) {
 	l.log0(true, msg, v...)
 }
 
+// LogFatal logs an error message with formatting (as defined by fmt.Printf) and
+// then immediately called os.Exit with status code 1.
 func (l *Logger) LogFatal(msg string, v ...interface{}) {
 	l.LogErr(msg, v...)
 	os.Exit(1)

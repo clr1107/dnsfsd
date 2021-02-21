@@ -70,6 +70,21 @@ func (c *simpleCacheCell) valid() bool {
 	return c.expiry == -1 || now() < c.expiry
 }
 
+func (s *SimpleCache) read(key string) (simpleCacheCell, bool) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	a, b := s.data[key]
+	return a, b
+}
+
+func (s *SimpleCache) write(key string, cell *simpleCacheCell) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.data[key] = *cell
+}
+
 func (s *SimpleCache) Put(key string, val interface{}, ttl int64) bool {
 	var expiry int64
 
@@ -79,15 +94,14 @@ func (s *SimpleCache) Put(key string, val interface{}, ttl int64) bool {
 		expiry = now() + ttl
 	}
 
-	s.lock.Lock()
-	s.data[key] = simpleCacheCell{val, expiry}
-	s.lock.Unlock()
-
+	s.write(key, &simpleCacheCell{val, expiry})
 	return true
 }
 
 func (s *SimpleCache) PutDefault(key string, val interface{}) bool {
+	s.lock.RLock()
 	ttl, ok := s.defaultTtls[key]
+	s.lock.RUnlock()
 
 	if !ok {
 		ttl = s.DefaultTTL
@@ -97,11 +111,9 @@ func (s *SimpleCache) PutDefault(key string, val interface{}) bool {
 }
 
 func (s *SimpleCache) Get(key string) interface{} {
-	s.lock.RLock()
-	val, ok := s.data[key]
-	s.lock.RUnlock()
+	val, ok := s.read(key)
 
-	if !ok {
+	if ok && !val.valid() {
 		s.Remove(key)
 		return nil
 	}
@@ -110,12 +122,13 @@ func (s *SimpleCache) Get(key string) interface{} {
 }
 
 func (s *SimpleCache) Remove(key string) bool {
-	if s.Contains(key) {
+	_, ok := s.read(key)
+
+	if ok {
 		s.lock.Lock()
+		defer s.lock.Unlock()
 
 		delete(s.data, key)
-
-		s.lock.Unlock()
 		return true
 	}
 
@@ -123,23 +136,33 @@ func (s *SimpleCache) Remove(key string) bool {
 }
 
 func (s *SimpleCache) Contains(key string) bool {
-	return s.Get(key) != nil
+	val, ok := s.read(key)
+
+	if ok && !val.valid() {
+		s.Remove(key)
+		return false
+	}
+
+	return ok
 }
 
 func (s *SimpleCache) SetDefaultTtl(key string, ttl int64) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
 	s.defaultTtls[key] = ttl
 }
 
 func (s *SimpleCache) Clear() {
 	s.lock.Lock()
+	defer s.lock.Unlock()
+
 	s.data = make(map[string]simpleCacheCell)
-	s.lock.Unlock()
 }
 
 func (s *SimpleCache) Size() int {
 	s.lock.RLock()
-	l := len(s.data)
-	s.lock.RUnlock()
+	defer s.lock.RUnlock()
 
-	return l
+	return len(s.data)
 }
