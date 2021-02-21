@@ -9,8 +9,8 @@ import (
 
 	"github.com/clr1107/dnsfsd/daemon/logger"
 	"github.com/clr1107/dnsfsd/daemon/server"
-	"github.com/clr1107/dnsfsd/pkg/persistence"
-	"github.com/clr1107/dnsfsd/pkg/persistence/rules"
+	"github.com/clr1107/dnsfsd/pkg/data"
+	"github.com/clr1107/dnsfsd/pkg/rules"
 	"github.com/spf13/viper"
 )
 
@@ -47,7 +47,7 @@ func spawnSignalRoutine(srv *server.DNSFSServer) {
 func main() {
 	println(strings.Repeat("=", 80))
 
-	if err := persistence.InitConfig(); err != nil {
+	if err := data.InitConfig(); err != nil {
 		fmt.Printf("main() init config: %v\n", err)
 		return
 	}

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/clr1107/dnsfsd/daemon/logger"
-	"github.com/clr1107/dnsfsd/pkg/persistence"
-	"github.com/clr1107/dnsfsd/pkg/persistence/rules"
+	"github.com/clr1107/dnsfsd/pkg/data"
+	"github.com/clr1107/dnsfsd/pkg/rules"
 	"github.com/miekg/dns"
 )
 
@@ -37,7 +37,7 @@ func (s *DNSFSServer) Shutdown() error {
 
 type DNSFSHandler struct {
 	rules        *rules.RuleSet
-	cache        *persistence.SimpleCache
+	cache        *data.SimpleCache
 	forwards     []string
 	ErrorChannel chan error
 	verbose      bool
@@ -45,7 +45,7 @@ type DNSFSHandler struct {
 }
 
 func NewHandler(rules *rules.RuleSet, forwards []string, verbose bool, logger *logger.Logger) *DNSFSHandler {
-	return &DNSFSHandler{rules, persistence.NewSimpleCache(-1), forwards, make(chan error), verbose, logger}
+	return &DNSFSHandler{rules, data.NewSimpleCache(-1), forwards, make(chan error), verbose, logger}
 }
 
 // returns whether to sink or not based on cache and rule matching

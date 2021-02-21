@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/clr1107/dnsfsd/pkg/persistence"
+	"github.com/clr1107/dnsfsd/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
@@ -19,8 +19,8 @@ var (
 	}
 )
 
-func loadRules() (*[]persistence.RuleFile, error) {
-	return persistence.LoadAllRuleFiles("/etc/dnsfsd/rules")
+func loadRules() (*[]rules.RuleFile, error) {
+	return rules.LoadAllRuleFiles("/etc/dnsfsd/rules")
 }
 
 func runPatternsSubCommand(cmd *cobra.Command, args []string) error {
@@ -34,27 +34,26 @@ func runPatternsSubCommand(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	numOfPatterns := 0
+	numOfRules := 0
 
 	for _, v := range *files {
-		numOfPatterns += len(*v.Rules)
+		numOfRules += len(*v.Rules)
 	}
 
-	header := fmt.Sprintf("Matching %v rules", numOfPatterns)
+	header := fmt.Sprintf("Matching %v rules", numOfRules)
 	println(header)
 	println(strings.Repeat("=", len(header)))
 
 	for _, i := range *files {
 		println()
 
-		header := fmt.Sprintf("File '%v'", i.Path)
+		header := fmt.Sprintf("File '%v' (%v)", i.Path, len(*i.Rules))
 		println(header)
 		println(strings.Repeat("-", len(header)))
 
 		for k, j := range *i.Rules {
 			fmt.Printf("%v)    %v\n", k+1, j)
 		}
-
 	}
 
 	return nil
