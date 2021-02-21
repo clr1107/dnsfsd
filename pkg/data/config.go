@@ -7,9 +7,12 @@ import (
 )
 
 var (
+	// ConfigLoaded is a flag for whether the configuration has been loaded.
 	ConfigLoaded bool = false
 )
 
+// InitConfig initialises the Viper configuration with default values and the
+// path.
 func InitConfig() error {
 	viper.GetViper().SetConfigFile("/etc/dnsfsd/config.yml")
 	viper.SetConfigType("yaml")

@@ -19,12 +19,14 @@ const (
 	whitelistChar      rune   = 'w'
 )
 
+// RuleFile is a representation of a file containing rules.
 type RuleFile struct {
-	Path   string
-	Loaded bool
-	Rules  *[]IRule
+	Path   string   // Path to the file
+	Loaded bool     // Whether the file has been loadaed yet
+	Rules  *[]IRule // A pointer to a slice of rules that have been loaded
 }
 
+// Load loads a RuleFile and returns any errors.
 func (p *RuleFile) Load() error {
 	f, err := os.Open(p.Path)
 
@@ -86,6 +88,8 @@ func (p *RuleFile) Load() error {
 	return nil
 }
 
+// AllRulesFiles returns a pointer to a slice of RuleFiles inside a given
+// directory, and any errors encountered whislst reading the directory.
 func AllRulesFiles(directory string) (*[]RuleFile, error) {
 	files, err := ioutil.ReadDir(directory)
 	paths := make([]RuleFile, 0)
@@ -103,6 +107,9 @@ func AllRulesFiles(directory string) (*[]RuleFile, error) {
 	return &paths, nil
 }
 
+// LoadAllRuleFiles returns a pointer to a slice of *loaded* RuleFiles in a
+// given directory and any errors encountered whilst reading and loading the
+// files.
 func LoadAllRuleFiles(path string) (*[]RuleFile, error) {
 	files, err := AllRulesFiles(path)
 	successes := make([]RuleFile, 0, len(*files))
@@ -122,6 +129,8 @@ func LoadAllRuleFiles(path string) (*[]RuleFile, error) {
 	return &successes, nil
 }
 
+// CollectAllRules creates a RuleSet from a pointer to a slice of RuleFiles. All
+// RuleFiles must already be loaded otherwise they will be skipped.
 func CollectAllRules(files *[]RuleFile) *RuleSet {
 	l := make([]IRule, 0, len(*files))
 
@@ -134,6 +143,9 @@ func CollectAllRules(files *[]RuleFile) *RuleSet {
 	return &RuleSet{&l}
 }
 
+// DownloadRuleFile downloads over http from a given URL to /etc/dnsfsd/rules
+// and a given file name. It returns the number of rules in the file and any
+// errors encountered.
 func DownloadRuleFile(url string, filename string) (int, error) {
 	resp, err := http.Get(url)
 

@@ -5,14 +5,21 @@ import (
 	"strings"
 )
 
+// RuleSet is a slice of IRule implementations.
 type RuleSet struct {
 	rules *[]IRule
 }
 
+// Size returns the number of rules in this set.
 func (s *RuleSet) Size() int {
 	return len(*s.rules)
 }
 
+// Test returns true if a given domain should be sinkholed. False indicates it
+// should not. Whitelist rules are tested first as they always take precedence;
+// any whitelist rule that matches will provide an immediate false indication.
+// Blacklists are tested after. If there are no whitelist matches and no
+// blacklist matches then no a false indication is given.
 func (s *RuleSet) Test(domain string) bool {
 	for _, v := range *s.rules {
 		if v.Whitelist() {
@@ -43,6 +50,10 @@ func ruleToString(prefix string, str string, whitelist bool) string {
 	return s + ";" + str
 }
 
+// IRule is an interface for a domain matching rule. Match returns true is the
+// rule matches a given domain (case insensitive) Whitelist returns true if this
+// is a whitelist rule; false if it is a blacklist rule String returns a string
+// representation.
 type IRule interface {
 	Match(domain string) bool
 	Whitelist() bool
