@@ -18,7 +18,8 @@ func InitConfig() error {
 	viper.GetViper().SetConfigFile("/etc/dnsfsd/config.yml")
 	viper.SetConfigType("yaml")
 
-	viper.Sub("server").SetDefault("port", 53)
+
+	viper.SetDefault("server.port", 53)
 	viper.Sub("dns").SetDefault("forwards", []string{"1.0.0.1:53", "1.1.1.1:53"})
 	viper.Sub("log").SetDefault("path", "/var/log/dnsfsd/log.txt")
 	viper.Sub("log").SetDefault("verbose", false)

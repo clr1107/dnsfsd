@@ -81,7 +81,6 @@ func (h *DNSFSHandler) check(domain string) bool {
 
 	if h.rules.Test(domain) {
 		h.sinkCache.PutDefault(domain, true)
-
 		return true
 	}
 
@@ -131,12 +130,20 @@ func (h *DNSFSHandler) forward(r *dns.Msg, dnsAddress string) (*dns.Msg, error) 
 }
 
 func (h *DNSFSHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
-	aType := r.Question[0].Qtype == dns.TypeA
-	domain := r.Question[0].Name
+	question := r.Question[0]
+	domain := question.Name
 
-	if aType {
+	if question.Qtype == dns.TypeA {
 		if h.check(domain) {
-			w.WriteMsg(newMsgReply(r, nil)) // just sink right now
+			if err := w.WriteMsg(newMsgReply(r, nil)); err != nil {
+				h.ErrorChannel <- err
+				return
+			}
+
+			if h.verbose {
+				h.logger.Log("[sink] %v", question.String())
+			}
+
 			return
 		}
 	}
@@ -150,6 +157,10 @@ func (h *DNSFSHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 
 		if err != nil {
 			h.ErrorChannel <- err
+
+			if h.verbose {
+				h.logger.LogErr("due to error no response sent to question %v", question.String())
+			}
 		}
 	}()
 }
