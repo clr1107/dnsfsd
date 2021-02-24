@@ -1,4 +1,5 @@
 module github.com/clr1107/dnsfsd/dnsfsd-util
+
 go 1.14
 
 // this module should be compiled as `dnsfs` and ran as such

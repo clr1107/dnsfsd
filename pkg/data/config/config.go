@@ -12,18 +12,23 @@ var (
 	ConfigLoaded bool = false
 )
 
+func setNestedDefault(key string, val interface{}) {
+	if viper.Get(key) == nil {
+		viper.SetDefault(key, val)
+	}
+}
+
 // InitConfig initialises the Viper configuration with default values and the
 // path.
 func InitConfig() error {
 	viper.GetViper().SetConfigFile("/etc/dnsfsd/config.yml")
 	viper.SetConfigType("yaml")
 
-
-	viper.SetDefault("server.port", 53)
-	viper.Sub("dns").SetDefault("forwards", []string{"1.0.0.1:53", "1.1.1.1:53"})
-	viper.Sub("log").SetDefault("path", "/var/log/dnsfsd/log.txt")
-	viper.Sub("log").SetDefault("verbose", false)
-	viper.Sub("dns").SetDefault("cache", 86400)
+	setNestedDefault("server.port", 53)
+	setNestedDefault("dns.forwards", []string{"1.0.0.1:53", "1.1.1.1:53"})
+	setNestedDefault("log.path", "/var/log/dnsfsd/log.txt")
+	setNestedDefault("log.verbose", false)
+	setNestedDefault("dns.cache", 86400)
 
 	if err := viper.ReadInConfig(); err == nil {
 		ConfigLoaded = true
