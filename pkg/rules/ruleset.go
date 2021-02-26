@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-// RuleSet is a slice of IRule implementations.
+// RuleSet is a set of IRule implementations.
 type RuleSet struct {
-	rules *[]IRule
+	rules *map[IRule]struct{}
 }
 
 // Size returns the number of rules in this set.
@@ -21,7 +21,7 @@ func (s *RuleSet) Size() int {
 // Blacklists are tested after. If there are no whitelist matches and no
 // blacklist matches then no a false indication is given.
 func (s *RuleSet) Test(domain string) bool {
-	for _, v := range *s.rules {
+	for v := range *s.rules {
 		if v.Whitelist() {
 			if v.Match(domain) {
 				return false
@@ -29,7 +29,7 @@ func (s *RuleSet) Test(domain string) bool {
 		}
 	}
 
-	for _, v := range *s.rules {
+	for v := range *s.rules {
 		if !v.Whitelist() {
 			if v.Match(domain) {
 				return true
@@ -100,7 +100,7 @@ type equalsRule struct {
 }
 
 func (e equalsRule) Match(domain string) bool {
-	return (strings.ToLower(domain) == e.str)
+	return strings.ToLower(domain) == e.str
 }
 
 func (e equalsRule) Whitelist() bool {

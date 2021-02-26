@@ -136,10 +136,11 @@ func (h *DNSFSHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	domain := question.Name
 
 	if question.Qtype == dns.TypeA {
-		skip := domain[len(domain) - 1] != '.'
-		domain = domain[:len(domain) - 1]
+		if len(domain) > 1 && domain[len(domain) - 1] == '.' {
+			domain = domain[:len(domain) - 1]
+		}
 
-		if !skip && h.check(domain) {
+		if h.check(domain) {
 			if err := w.WriteMsg(newMsgReply(r, nil)); err != nil {
 				h.ErrorChannel <- err
 				return

@@ -138,11 +138,13 @@ func LoadAllRuleFiles(path string) (*[]RuleFile, error) {
 // CollectAllRules creates a RuleSet from a pointer to a slice of RuleFiles. All
 // RuleFiles must already be loaded otherwise they will be skipped.
 func CollectAllRules(files *[]RuleFile) *RuleSet {
-	l := make([]IRule, 0, len(*files))
+	l := make(map[IRule]struct{})
 
 	for _, v := range *files {
 		if v.Loaded {
-			l = append(l, *v.Rules...)
+			for _, rule := range *v.Rules {
+				l[rule] = struct{}{}
+			}
 		}
 	}
 

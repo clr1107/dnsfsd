@@ -19,3 +19,7 @@ e;w;456.google.com
 The first rule would blacklist all domains following that regular expression pattern and the second rule would whitelist the domain `456.google.com`. Rules are case-insensitive.
 
 Note that the whitelist signal is blank in the first, this is equal to the following expressions: `r;[0-9]\.google\..*` and `r;X;[0-9]\.google\..*` where X is any string, as if it is not `w` (or not present) it is simply ignored and interpreted as a blacklist signal.
+
+### Rules
+Rulesets from other software can be converted to dnsfsd using Python3.x scripts located in the directory `conversions`
+So far conversions for adblock & dnscrypt-proxy are done. A list from github.com/notracking/hosts-blocklists has been converted (the dnscrypt-proxy one) and is in the directory `lists`
