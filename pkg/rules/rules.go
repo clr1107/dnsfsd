@@ -40,6 +40,8 @@ func (p *RuleFile) Load() error {
 
 	for scanner.Scan() {
 		text := scanner.Text()
+		text = strings.TrimRight(text, "\n")
+		text = strings.Trim(text, " ")
 
 		if len(text) > 0 && text[0] == '#' {
 			continue

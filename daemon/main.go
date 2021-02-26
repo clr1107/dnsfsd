@@ -88,7 +88,7 @@ func main() {
 		}
 	}()
 
-	log.Log("starting to listen on port %v (verbose: %v)", port, verbose)
+	log.Log("starting listening on port %v with %v servers (verbose: %v)", port, len(forwards), verbose)
 	if err := srv.Server.ListenAndServe(); err != nil {
 		log.LogFatal("main() starting server: %v", err)
 	}

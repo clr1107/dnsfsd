@@ -108,6 +108,8 @@ func (h *DNSFSHandler) resolve(r *dns.Msg) (*dns.Msg, error) {
 			h.dnsCache.PutDefault(question, msg.Answer)
 			return msg, nil
 		}
+
+		h.ErrorChannel <- err
 	}
 
 	return nil, fmt.Errorf("no given DNS servers returned a result for this query: `%v`", question.String())
@@ -134,7 +136,10 @@ func (h *DNSFSHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	domain := question.Name
 
 	if question.Qtype == dns.TypeA {
-		if h.check(domain) {
+		skip := domain[len(domain) - 1] != '.'
+		domain = domain[:len(domain) - 1]
+
+		if !skip && h.check(domain) {
 			if err := w.WriteMsg(newMsgReply(r, nil)); err != nil {
 				h.ErrorChannel <- err
 				return
