@@ -141,10 +141,16 @@ func (s *SimpleCache) Remove(key interface{}) bool {
 }
 
 func (s *SimpleCache) Contains(key interface{}) bool {
+	s.lock.Lock()
+	s.lock.RLock()
+
+	defer s.lock.Unlock()
+	defer s.lock.RUnlock()
+
 	val, ok := s.read(key)
 
 	if ok && !val.valid() {
-		s.Remove(key)
+		delete(s.Data, key)
 		return false
 	}
 
