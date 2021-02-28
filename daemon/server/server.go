@@ -38,6 +38,7 @@ func NewServer(port int, handler *DNSFSHandler) *DNSFSServer {
 
 func (s *DNSFSServer) Shutdown() error {
 	s.Handler.sinkCache.Clear()
+	s.Handler.dnsCache.Clean()
 
 	if err := s.Handler.dnsCache.SerialiseToFile("/etc/dnsfsd/dns.cache"); err != nil {
 		return err
@@ -102,14 +103,18 @@ func (h *DNSFSHandler) resolve(r *dns.Msg) (*dns.Msg, error) {
 	}
 
 	for _, v := range h.forwards {
+		if h.verbose {
+			h.logger.Log("[forwarding] %v -> %v", question.String(), v)
+		}
+
 		msg, err := h.forward(r, v)
 
-		if err == nil {
+		if err != nil {
+			h.ErrorChannel <- err
+		} else {
 			h.dnsCache.PutDefault(question, msg.Answer)
 			return msg, nil
 		}
-
-		h.ErrorChannel <- err
 	}
 
 	return nil, fmt.Errorf("no given DNS servers returned a result for this query: `%v`", question.String())
@@ -136,10 +141,6 @@ func (h *DNSFSHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	domain := question.Name
 
 	if question.Qtype == dns.TypeA {
-		if len(domain) > 1 && domain[len(domain) - 1] == '.' {
-			domain = domain[:len(domain) - 1]
-		}
-
 		if h.check(domain) {
 			if err := w.WriteMsg(newMsgReply(r, nil)); err != nil {
 				h.ErrorChannel <- err
@@ -165,7 +166,7 @@ func (h *DNSFSHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 			h.ErrorChannel <- err
 
 			if h.verbose {
-				h.logger.LogErr("due to error no response sent to question %v", question.String())
+				h.logger.LogErr("no response sent to question (err) %v", question.String())
 			}
 		}
 	}()
