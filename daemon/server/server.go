@@ -102,9 +102,9 @@ func (h *DNSFSHandler) resolve(r *dns.Msg) (*dns.Msg, error) {
 		h.dnsCache.Remove(question.String())
 	}
 
-	for _, v := range h.forwards {
+	for k, v := range h.forwards {
 		if h.verbose {
-			h.logger.Log("[forwarding] %v -> %v", question.String(), v)
+			h.logger.Log("[forwarding-%v] %v -> %v", k+1, question.String(), v)
 		}
 
 		msg, err := h.forward(r, v)

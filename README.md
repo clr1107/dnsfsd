@@ -22,4 +22,4 @@ Note that the whitelist signal is blank in the first, this is equal to the follo
 
 ### Rules
 Rulesets from other software can be converted to dnsfsd using Python3.x scripts located in the directory `conversions`
-So far conversions for adblock & dnscrypt-proxy are done. A list from github.com/notracking/hosts-blocklists has been converted (the dnscrypt-proxy one) and is in the directory `lists`
+So far conversions for adblock & dnscrypt-proxy are done.
