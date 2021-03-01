@@ -92,14 +92,14 @@ func (h *DNSFSHandler) check(domain string) bool {
 func (h *DNSFSHandler) resolve(r *dns.Msg) (*dns.Msg, error) {
 	question := r.Question[0]
 
-	if h.dnsCache.Contains(question) {
-		rr, ok := h.dnsCache.Get(question).([]dns.RR)
+	if h.dnsCache.Contains(question.String()) { // todo -- cache non-string keys
+		rr, ok := h.dnsCache.Get(question.String()).([]dns.RR)
 
 		if ok {
 			return newMsgReply(r, rr), nil
 		}
 
-		h.dnsCache.Remove(question)
+		h.dnsCache.Remove(question.String())
 	}
 
 	for _, v := range h.forwards {
@@ -112,7 +112,7 @@ func (h *DNSFSHandler) resolve(r *dns.Msg) (*dns.Msg, error) {
 		if err != nil {
 			h.ErrorChannel <- err
 		} else {
-			h.dnsCache.PutDefault(question, msg.Answer)
+			h.dnsCache.PutDefault(question.String(), msg.Answer)
 			return msg, nil
 		}
 	}

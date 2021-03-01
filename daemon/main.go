@@ -71,7 +71,7 @@ func main() {
 		log.Log("loaded %v rules", loadedRules.Size())
 	}
 
-	dnsCache, err := cache.DNSCacheFromFile("/etc/dnsfsd/dns.cache")
+	dnsCache, err := cache.DNSCacheFromFile(cacheTTL, "/etc/dnsfsd/dns.cache")
 	if err != nil {
 		log.LogErr("could not load dns cache file, creating new DNSCache")
 		dnsCache = cache.NewDNSCache(cacheTTL)

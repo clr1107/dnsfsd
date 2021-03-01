@@ -3,6 +3,7 @@ package cache
 import (
 	"strconv"
 	"testing"
+	"time"
 )
 
 func TestPutGet(t *testing.T) {
@@ -25,11 +26,12 @@ func TestPutGet(t *testing.T) {
 }
 
 func TestTimeout(t *testing.T) {
-	cache := NewSimpleCache(-2)
+	cache := NewSimpleCache(-1)
 
-	cache.PutDefault("one", 1)
+	cache.Put("one", 1, 50 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
+
 	one := cache.Get("one")
-
 	if one != nil {
 		t.Fatalf("value is still being returned despite it expiring")
 	}
@@ -72,30 +74,3 @@ func TestSize(t *testing.T) {
 	}
 }
 
-func TestSerialisation(t *testing.T) {
-	cache := NewDNSCache(-1)
-
-	cache.PutDefault("one", 1)
-	cache.PutDefault("two", 2)
-	cache.PutDefault("three", 3)
-
-	buffer, err := cache.Serialise()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
-
-	deserialised, err := DeserialiseDNSCache(buffer)
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
-
-	if deserialised.Size() != cache.Size() {
-		t.Fatalf("deserialised's size is not equal to the original")
-	}
-
-	for k, v := range deserialised.Data {
-		if v.Val != cache.Data[k].Val {
-			t.Fatalf("one or more elements are not correct. %v != %v", v.Val, cache.Data[k].Val)
-		}
-	}
-}
