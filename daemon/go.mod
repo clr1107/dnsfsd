@@ -1,6 +1,6 @@
 module github.com/clr1107/dnsfsd/daemon
 
-go 1.14
+go 1.16
 
 replace github.com/clr1107/dnsfsd/pkg => ../pkg
 

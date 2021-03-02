@@ -64,6 +64,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	log.Log(strings.Repeat("=", 80))
+
 	loadedRules, err := loadRules()
 	if err != nil {
 		log.LogFatal("main() loading rules: %v", err)

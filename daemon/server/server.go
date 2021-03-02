@@ -128,7 +128,7 @@ func (h *DNSFSHandler) forward(r *dns.Msg, dnsAddress string) (*dns.Msg, error) 
 
 	if err != nil || x == nil {
 		if x == nil {
-			err = fmt.Errorf("after forwarding query `%v` to '%v' the message response was nil", question, dnsAddress)
+			err = fmt.Errorf("after forwarding query `%v` to '%v' the message response was nil", question.String(), dnsAddress)
 		}
 
 		return nil, err

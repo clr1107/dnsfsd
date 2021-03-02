@@ -7,7 +7,7 @@ fi
 
 echo "Building binaries..."
 
-cd dnsfsd-util
+cd dnsfsd-util || exit
 /usr/local/go/bin/go build -o dnsfs .
 
 if [ $? -ne 0 ]; then
@@ -16,7 +16,7 @@ if [ $? -ne 0 ]; then
 fi
 cd ../
 
-cd daemon
+cd daemon || exit
 /usr/local/go/bin/go build -o dnsfsd .
 
 if [ $? -ne 0 ]; then

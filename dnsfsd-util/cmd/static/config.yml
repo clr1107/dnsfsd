@@ -1,0 +1,11 @@
+server:
+  port: 53
+  parallel_match: false
+log:
+  path: '/var/log/dnsfsd/log.txt'
+  verbose: false
+dns:
+  cache: 86400
+  forwards:
+    - '1.0.0.1:53'
+    - '1.1.1.1:53'

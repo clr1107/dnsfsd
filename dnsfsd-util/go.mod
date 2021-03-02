@@ -1,6 +1,6 @@
 module github.com/clr1107/dnsfsd/dnsfsd-util
 
-go 1.14
+go 1.16
 
 // this module should be compiled as `dnsfs` and ran as such
 // `dnsfsd` is the daemon.
