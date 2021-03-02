@@ -47,11 +47,12 @@ func runDigSubCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf(";\n; test took %v ms\n", delta)
+	fmt.Println("; remember, this does not use any caching!")
 
 	if delta > 10 { // arbitrary number tbh.
-		fmt.Println("; this is an impairing response time, perhaps you have a large ruleset?")
+		fmt.Println("; this is an impairing response time, perhaps you have a large or overly complex ruleset?")
 	} else if delta <= 5 { // once again, arbitrary lol.
-		fmt.Println("; this is an excellent response time, perhaps you have a small ruleset.")
+		fmt.Println("; this is an excellent response time, it will not impair noticeable performance at all")
 	} else {
 		fmt.Printf("; this is indicative of good performance. this is an adequately sized ruleset.")
 	}

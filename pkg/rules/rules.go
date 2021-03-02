@@ -68,7 +68,7 @@ func (p *RuleFile) Load() error {
 			pattern, err := regexp.Compile(ruleText)
 
 			if err != nil {
-				return fmt.Errorf("could not parse rule as regular expression (opcode `r`) '%v'", text)
+				return fmt.Errorf("could not parse rule, in rule file %v, as regular expression (opcode `r`) '%v'", p.Path, text)
 			}
 
 			rules = append(rules, regexpRule{pattern, whitelist})
@@ -80,7 +80,7 @@ func (p *RuleFile) Load() error {
 			rules = append(rules, equalsRule{ruleText, whitelist})
 			break
 		default:
-			return fmt.Errorf("could not parse rule '%v' as opcode `%v` is unknown", text, split[0])
+			return fmt.Errorf("could not parse rule '%v', in rule file %v, as opcode `%v` is unknown", text, p.Path, split[0])
 		}
 	}
 
