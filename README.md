@@ -1,11 +1,19 @@
 # DNSFSD
-A DNS server that filters domain names by rule matching, and forwards those that pass to another DNS server, and those that don't get ignored. So this is essentially like a PiHole except it runs on a local system.
+A DNS server that filters domain names by complex rule matching and forwards those that pass to another DNS server and those that don't get ignored ('sinkholed'). So this is essentially like a PiHole except it runs on a local system.
+
+The server also has a configurable DNS cache.
+
+Note: lots of commands here will require root permission.
 
 ### Install
-To install this project it must be built using a Go compiler. Run `install.sh` to build & move the binaries to an appropriate location; then run `dnsfs setup`.
+To install this project it must be built using a Go compiler. Run `install.sh` to build & move the binaries to an appropriate location; then run `dnsfs setup`. This has been tested on Ubuntu and will, for now, only work on Linux systems.
+
+Once `dnsfs setup` has been run all directories and files (default configuration and systemd service file) will be created. From there one can start the server by using `dnsfsd` or `systemctl start dnsfsd`.
+
+To start the server evert time the computer starts use `systemctl enable dnsfsd`
 
 ### Rules
-Rule files, contained in `/etc/dnsfsd/rules`, follow a strict structure. Every new line is a new rule. So far there are three types of rules: regular expressions (`r`), contains (`c`), and equal (`e`). The structure of a rule is as follows:
+Rule files, contained in `/etc/dnsfsd/rules`, follow a strict structure. Every new line is a new rule. So far there are three types of rules: regular expressions (`r`), contains (`c`), and equals (`e`). Lines that start with `#` are comments. The structure of a rule is as follows:
 ```
 t;w;<rule here>
 ```
@@ -20,6 +28,20 @@ The first rule would blacklist all domains following that regular expression pat
 
 Note that the whitelist signal is blank in the first, this is equal to the following expressions: `r;[0-9]\.google\..*` and `r;X;[0-9]\.google\..*` where X is any string, as if it is not `w` (or not present) it is simply ignored and interpreted as a blacklist signal.
 
-### Rules
-Rulesets from other software can be converted to dnsfsd using Python3.x scripts located in the directory `conversions`
-So far conversions for adblock & dnscrypt-proxy are done.
+### Conversions
+Rule files from other software can be converted to dnsfs using Python3 scripts located in the directory `conversions`
+So far conversions for adblock dnscrypt-proxy, and hostfiles are done.
+
+### dnsfs
+The `dnsfs` command contains some useful utilities. 
+
+#### dig
+`dnsfs dig` which will allow one to test their rulesets by sending a fake (A type) DNS query.
+
+#### download
+`dnsfs download` will download an external (dnsfs) rule file and, with a given name, store it in `/etc/dnsfsd/rules/`. Note: the server will need to be restarted for the rule file to be loaded into a ruleset.
+
+To download and convert a rule file from another piece of software one will have to use a external utility, such as `curl`, and use one of the conversion scripts and move it manually.
+
+#### setup
+`dnsfs setup` was discussed above.
