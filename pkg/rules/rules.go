@@ -19,6 +19,48 @@ const (
 	whitelistChar      rune   = 'w'
 )
 
+func RuleFromString(text string) (IRule, error) {
+	text = strings.TrimRight(text, "\n")
+	text = strings.Trim(text, " ")
+
+	if len(text) > 0 && text[0] == '#' {
+		return nil, nil
+	}
+
+	split := strings.SplitN(text, ";", 3)
+	var ruleText string
+	var whitelist bool = false
+
+	if len(split) == 3 {
+		if len(split[1]) > 0 {
+			whitelist = rune(split[1][0]) == whitelistChar
+		}
+
+		ruleText = split[2]
+	} else if len(split) == 2 {
+		ruleText = split[1]
+	} else {
+		return nil, fmt.Errorf("could not parse rule '%v' as it is in an invalid format", text)
+	}
+
+	switch split[0] {
+	case regexpRulePrefix:
+		pattern, err := regexp.Compile(ruleText)
+
+		if err != nil {
+			return nil, fmt.Errorf("could not parse rule as regular expression (opcode `r`) '%v'", text)
+		}
+
+		return regexpRule{pattern, whitelist}, nil
+	case containsRulePrefix:
+		return containsRule{ruleText, whitelist}, nil
+	case equalsRulePrefix:
+		return equalsRule{ruleText, whitelist}, nil
+	default:
+		return nil, fmt.Errorf("could not parse rule '%v' as opcode `%v` is unknown", text, split[0])
+	}
+}
+
 // RuleFile is a representation of a file containing rules.
 type RuleFile struct {
 	Path   string   // Path to the file
@@ -34,57 +76,27 @@ func (p *RuleFile) Load() error {
 		return fmt.Errorf("could not open rule file '%v'", p.Path)
 	}
 
-	defer f.Close()
 	scanner := bufio.NewScanner(f)
 	rules := make([]IRule, 0)
 
 	for scanner.Scan() {
 		text := scanner.Text()
-		text = strings.TrimRight(text, "\n")
-		text = strings.Trim(text, " ")
+		rule, err := RuleFromString(text)
 
-		if len(text) > 0 && text[0] == '#' {
-			continue
+		if err != nil {
+			return fmt.Errorf("%v: rule file %v", err, p.Path)
 		}
 
-		split := strings.SplitN(text, ";", 3)
-		var ruleText string
-		var whitelist bool = false
-
-		if len(split) == 3 {
-			if len(split[1]) > 0 {
-				whitelist = rune(split[1][0]) == whitelistChar
-			}
-
-			ruleText = split[2]
-		} else if len(split) == 2 {
-			ruleText = split[1]
-		} else {
-			return fmt.Errorf("could not parse rule '%v', in rule file %v, as it is in an invalid format", text, p.Path)
-		}
-
-		switch split[0] {
-		case regexpRulePrefix:
-			pattern, err := regexp.Compile(ruleText)
-
-			if err != nil {
-				return fmt.Errorf("could not parse rule, in rule file %v, as regular expression (opcode `r`) '%v'", p.Path, text)
-			}
-
-			rules = append(rules, regexpRule{pattern, whitelist})
-			break
-		case containsRulePrefix:
-			rules = append(rules, containsRule{ruleText, whitelist})
-			break
-		case equalsRulePrefix:
-			rules = append(rules, equalsRule{ruleText, whitelist})
-			break
-		default:
-			return fmt.Errorf("could not parse rule '%v', in rule file %v, as opcode `%v` is unknown", text, p.Path, split[0])
+		if rule != nil {
+			rules = append(rules, rule)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	if err := f.Close(); err != nil {
 		return err
 	}
 
