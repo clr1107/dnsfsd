@@ -66,7 +66,7 @@ type regexpRule struct {
 }
 
 func (r regexpRule) Match(domain string) bool {
-	return r.expression.MatchString(strings.ToLower(domain))
+	return r.expression.MatchString(domain)
 }
 
 func (r regexpRule) Whitelist() bool {
@@ -83,7 +83,7 @@ type containsRule struct {
 }
 
 func (r containsRule) Match(domain string) bool {
-	return strings.Contains(strings.ToLower(domain), r.substring)
+	return strings.Contains(domain, r.substring)
 }
 
 func (r containsRule) Whitelist() bool {
@@ -100,7 +100,7 @@ type equalsRule struct {
 }
 
 func (e equalsRule) Match(domain string) bool {
-	return strings.ToLower(domain) == e.str
+	return len(domain) == len(e.str) && domain == e.str
 }
 
 func (e equalsRule) Whitelist() bool {

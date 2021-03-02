@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/clr1107/dnsfsd/pkg/data/cache"
 	"strconv"
+	"strings"
 
 	"github.com/clr1107/dnsfsd/daemon/logger"
 	"github.com/clr1107/dnsfsd/pkg/rules"
@@ -138,10 +139,10 @@ func (h *DNSFSHandler) forward(r *dns.Msg, dnsAddress string) (*dns.Msg, error) 
 
 func (h *DNSFSHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	question := r.Question[0]
-	domain := question.Name
+	question.Name = strings.ToLower(question.Name)
 
 	if question.Qtype == dns.TypeA {
-		if h.check(domain) {
+		if h.check(question.Name) {
 			if err := w.WriteMsg(newMsgReply(r, nil)); err != nil {
 				h.ErrorChannel <- err
 				return

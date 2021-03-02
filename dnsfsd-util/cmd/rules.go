@@ -13,8 +13,8 @@ var (
 
 	patternsCmd = &cobra.Command{
 		Use:   "rules",
-		Short: "List rules",
-		Long:  `List all the rules currently being matched.`,
+		Short: "List rules. If there are a large amount of rules this could take a long time!",
+		Long:  `List all the rules currently being matched. If there are a large amount of rules this could take a long time!`,
 		RunE:  runPatternsSubCommand,
 	}
 )

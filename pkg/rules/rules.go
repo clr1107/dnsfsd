@@ -60,7 +60,7 @@ func (p *RuleFile) Load() error {
 		} else if len(split) == 2 {
 			ruleText = split[1]
 		} else {
-			return fmt.Errorf("could not parse rule '%v' as it is in an invalid format", text)
+			return fmt.Errorf("could not parse rule '%v', in rule file %v, as it is in an invalid format", text, p.Path)
 		}
 
 		switch split[0] {
@@ -118,11 +118,12 @@ func AllRulesFiles(directory string) (*[]RuleFile, error) {
 // files.
 func LoadAllRuleFiles(path string) (*[]RuleFile, error) {
 	files, err := AllRulesFiles(path)
-	successes := make([]RuleFile, 0, len(*files))
 
 	if err != nil {
 		return nil, err
 	}
+
+	successes := make([]RuleFile, 0, len(*files))
 
 	for _, v := range *files {
 		if err := v.Load(); err == nil {

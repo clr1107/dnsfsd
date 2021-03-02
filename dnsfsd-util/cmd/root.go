@@ -1,6 +1,9 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+	"time"
+)
 
 var (
 	rootCmd = &cobra.Command{
@@ -18,6 +21,13 @@ func init() {
 	rootCmd.AddCommand(patternsCmd)
 	rootCmd.AddCommand(downloadCmd)
 	rootCmd.AddCommand(setupCmd)
+	rootCmd.AddCommand(digCmd)
+}
+
+func timeIt(do func()) time.Duration {
+	start := time.Now()
+	do()
+	return time.Now().Sub(start)
 }
 
 func ExecuteRoot() error {
