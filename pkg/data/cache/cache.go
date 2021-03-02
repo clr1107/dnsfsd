@@ -155,6 +155,10 @@ func DNSCacheFromFile(defaultTTL time.Duration, path string) (*DNSCache, error) 
 	dc := NewDNSCache(defaultTTL)
 	dc.Impl = c
 
+	if err := fp.Close(); err != nil {
+		return nil, err
+	}
+
 	return dc, nil
 }
 

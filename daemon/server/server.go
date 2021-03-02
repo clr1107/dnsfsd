@@ -21,6 +21,17 @@ func newMsgReply(m *dns.Msg, ans []dns.RR) *dns.Msg {
 	return r
 }
 
+func formatDomain(domain string) string {
+	domain = strings.ToLower(domain)
+	l := len(domain)
+
+	if l > 1 && domain[l - 1] == '.' {
+		return domain[:len(domain) - 1]
+	}
+
+	return domain
+}
+
 type DNSFSServer struct {
 	Port    int
 	Server  *dns.Server
@@ -127,7 +138,7 @@ func (h *DNSFSHandler) forward(r *dns.Msg, dnsAddress string) (*dns.Msg, error) 
 	x, _, err := c.Exchange(r, dnsAddress)
 
 	if err != nil || x == nil {
-		if x == nil {
+		if err == nil {
 			err = fmt.Errorf("after forwarding query `%v` to '%v' the message response was nil", question.String(), dnsAddress)
 		}
 
@@ -139,21 +150,19 @@ func (h *DNSFSHandler) forward(r *dns.Msg, dnsAddress string) (*dns.Msg, error) 
 
 func (h *DNSFSHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	question := r.Question[0]
-	question.Name = strings.ToLower(question.Name)
+	domain := formatDomain(question.Name)
 
-	if question.Qtype == dns.TypeA {
-		if h.check(question.Name) {
-			if err := w.WriteMsg(newMsgReply(r, nil)); err != nil {
-				h.ErrorChannel <- err
-				return
-			}
-
-			if h.verbose {
-				h.logger.Log("[sink] %v", question.String())
-			}
-
+	if h.check(domain) {
+		if err := w.WriteMsg(newMsgReply(r, nil)); err != nil {
+			h.ErrorChannel <- err
 			return
 		}
+
+		if h.verbose {
+			h.logger.Log("[sink] %v", question.String())
+		}
+
+		return
 	}
 
 	go func() {
