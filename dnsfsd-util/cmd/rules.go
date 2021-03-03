@@ -9,8 +9,6 @@ import (
 )
 
 var (
-	remove bool
-
 	patternsCmd = &cobra.Command{
 		Use:   "rules",
 		Short: "List rules. If there are a large amount of rules this could take a long time!",

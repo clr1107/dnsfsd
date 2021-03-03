@@ -1,8 +1,8 @@
 # Convert blocking hostfiles to dnsfsd.
 # Run this python script with a hostfile through stdin, it will then send to
 # stdout the conversion.
-# If any directive doesn't point to 0.0.0.0 then it will count as a whitelist
-# instruction
+# If any directive doesn't point to 0.0.0.0 or 127.0.0.1 or localhost then it
+# will count as a whitelist instruction
 # For example, on linux: `python3 hostfile.py < original.txt > converted.txt`
 
 import sys
@@ -35,10 +35,7 @@ def do():
         if len(parts) != 2:
             continue
 
-        if parts[0] == 'localhost' or parts[1] == 'localhost':
-            continue
-
-        if parts[0] == '127.0.0.1' or parts[1] == '127.0.0.1':
+        if parts[0] == 'localhost' and parts[1] == '127.0.0.1':
             continue
 
         sys.stdout.write(convert(parts[1], parts[0] != '0.0.0.0') + '\n')

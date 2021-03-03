@@ -45,3 +45,6 @@ To download and convert a rule file from another piece of software one will have
 
 #### setup
 `dnsfs setup` was discussed above.
+
+#### clean
+`dnsfs clean` deletes all logs that dnsfsd has created. Ensure dnsfsd is not running at the time.
