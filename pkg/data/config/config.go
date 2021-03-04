@@ -33,7 +33,7 @@ func InitConfig() error {
 	if err := viper.ReadInConfig(); err == nil {
 		ConfigLoaded = true
 	} else {
-		return fmt.Errorf("configuration could not be read")
+		return fmt.Errorf("configuration could not be read: %v", err)
 	}
 
 	return nil

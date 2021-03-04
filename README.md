@@ -48,3 +48,6 @@ To download and convert a rule file from another piece of software one will have
 
 #### clean
 `dnsfs clean` deletes all logs that dnsfsd has created. Ensure dnsfsd is not running at the time.
+
+#### log
+`dnsfs log` outputs the log file, if it exists.
