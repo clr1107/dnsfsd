@@ -19,18 +19,14 @@ var (
 
 func isActive() (bool, error) {
 	active := exec.Command("systemctl", "is-active", "dnsfsd")
-	s, err := active.Output()
+	err := active.Run()
 	code := active.ProcessState.ExitCode()
 
 	if code == 0 {
 		return true, nil
 	} else {
-		if string(s) == "failed\n" {
-			return false, nil
-		}
-
 		if err == nil {
-			err = fmt.Errorf("unknown error whilst checking systemd")
+			return false, nil
 		}
 
 		return false, err

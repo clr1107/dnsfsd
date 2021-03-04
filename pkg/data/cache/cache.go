@@ -137,6 +137,7 @@ func registerGobTypes() {
 	gob.Register(dns.Question{})
 	gob.Register(make([]dns.RR, 0))
 	gob.Register(new(dns.A))
+	gob.Register(dns.CNAME{})
 }
 
 func DNSCacheFromFile(defaultTTL time.Duration, path string) (*DNSCache, error) {
