@@ -51,3 +51,6 @@ To download and convert a rule file from another piece of software one will have
 
 #### log
 `dnsfs log` outputs the log file, if it exists.
+
+#### status
+`dnsfs status` attempts to check with systemd if `dnsfsd` is running.

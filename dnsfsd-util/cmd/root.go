@@ -24,6 +24,7 @@ func init() {
 	rootCmd.AddCommand(digCmd)
 	rootCmd.AddCommand(cleanCmd)
 	rootCmd.AddCommand(logCmd)
+	rootCmd.AddCommand(statusCmd)
 }
 
 func timeIt(do func()) time.Duration {
