@@ -55,24 +55,20 @@ func runLogSubCommand(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not open log file: %v", err)
 	}
 
+	var lines [][]byte
+
 	if reverse {
-		lines, err := io.ReadFileLinesReverse(fp, length)
+		lines, err = io.ReadFileLinesReverse(fp, length)
 
 		if err != nil {
 			return err
 		}
-
-		for _, line := range lines {
-			println(string(line))
-		}
-
-		return nil
 	} else {
-		lines := io.ReadFileLines(fp, length)
+		lines = io.ReadFileLines(fp, length)
+	}
 
-		for _, line := range lines {
-			println(string(line))
-		}
+	for _, line := range lines {
+		println(string(line))
 	}
 
 	return nil

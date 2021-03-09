@@ -12,7 +12,14 @@ const (
 
 func ReadFileLines(file *os.File, count int64) [][]byte {
 	var counter int64
-	read := make([][]byte, 0, count)
+	var read [][]byte
+
+	if count > 0 {
+		read = make([][]byte, 0, count)
+	} else {
+		read = make([][]byte, 0)
+	}
+
 	sc := bufio.NewScanner(file)
 
 	for counter = 0; sc.Scan(); counter++ {
@@ -35,9 +42,15 @@ func ReadFileLinesReverse(file *os.File, count int64) ([][]byte, error) {
 	}
 
 	var cursor int64
+	var lines [][]byte
 	size := stat.Size()
-	lines := make([][]byte, 0, count)
 	line := make([]byte, 0)
+
+	if count > 0 {
+		lines = make([][]byte, 0, count)
+	} else {
+		lines = make([][]byte, 0)
+	}
 
 	for cursor = -1; int64(len(lines)) < count; cursor-- {
 		if _, err := file.Seek(cursor, 2); err != nil {
