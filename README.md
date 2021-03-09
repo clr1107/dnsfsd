@@ -50,7 +50,7 @@ To download and convert a rule file from another piece of software one will have
 `dnsfs clean` deletes all logs that dnsfsd has created. Ensure dnsfsd is not running at the time.
 
 #### log
-`dnsfs log` outputs the log file, if it exists.
+`dnsfs log` outputs the log file, if it exists. It also supports `head` and `tail` functions. I.e. `dnsfs log 3` will read the first 3 lines only. `dnsfs log -- -3` will read the last 3 (in the standard order). Note the `--`, this is to signal that `-3` is a number and not a flag.
 
 #### status
 `dnsfs status` attempts to check with systemd if `dnsfsd` is running.
