@@ -11,6 +11,4 @@
 *.so
 *.dylib
 *.out
-*/go.sum
-go.sum
 .idea/*
