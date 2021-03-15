@@ -11,4 +11,9 @@
 *.so
 *.dylib
 *.out
+*/go.sum
+go.sum
+.idea/*
+daemon/dnsfsd
+dnsfsd-util/dnsfs
 .idea/*

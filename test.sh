@@ -1,38 +1,34 @@
 #!/bin/bash
+set -eu
+
+run_tests () {
+    oldwd="${PWD}"
+    cd "${1}" || exit 1
+    go test ./...
+    cd "${oldwd}"
+}
 
 echo "Running tests..."
 
-cd dnsfsd-util || exit
-/usr/local/go/bin/go test ./...
-
-if [ $? -ne 0 ]; then
+if run_tests ./dnsfsd-util; then
+    echo "Tests passed for dnsfsd-util (dnsfs)"
+else
     echo "Tests failed for dnsfsd-util (dnsfs)"
     exit 1
-else
-    echo "Tests passed for dnsfsd-util (dnsfs)"
 fi
 
-cd ../ || exit
-cd daemon || exit
-/usr/local/go/bin/go test ./...
-
-if [ $? -ne 0 ]; then
+if run_tests ./daemon; then
+    echo "Tests passed for daemon (dnsfsd)"
+else
     echo "Tests failed for daemon (dnsfsd)"
     exit 1
-else
-    echo "Tests passed for daemon (dnsfsd)"
 fi
 
-cd ../ || exit
-cd pkg || exit
-/usr/local/go/bin/go test ./...
-
-if [ $? -ne 0 ]; then
+if run_tests ./pkg; then
+    echo "Tests passed for pkg (lib)"
+else
     echo "Tests failed for pkg (lib)"
     exit 1
-else
-    echo "Tests passed for pkg (lib)"
 fi
 
 echo "All tests passed!"
-cd ../ || exit
