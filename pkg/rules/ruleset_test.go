@@ -9,7 +9,7 @@ func TestWhitelist(t *testing.T) {
 	rule := &containsRule{"google.com", false}
 	whitelist := &containsRule{"456.google.com", true}
 
-	set := &RuleSet{&map[IRule]struct{}{rule: {}, whitelist: {}}}
+	set := &RuleSet{map[IRule]struct{}{rule: {}, whitelist: {}}}
 
 	results := [...]bool{
 		set.Test("xxx.google.com"),

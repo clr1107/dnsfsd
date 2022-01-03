@@ -1,5 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 set -eu
+
+BIN_DIR=/usr/local/bin
+
+#if [[ "$OSTYPE" != "linux-gnu"* ]] && [[ "$OSTYPE" != "darwin"* ]]; then
+if [[ "$OSTYPE" != "linux-gnu"* ]]; then
+  echo "dnsfsd only supports GNU/Linux"
+  exit 0
+fi
 
 run_build () {
     oldwd="${PWD}"
@@ -27,15 +35,15 @@ fi
 
 echo "Built binaries"
 
-if ! mv dnsfsd-util/dnsfs /usr/local/bin/ >/dev/null 2>&1; then
-    echo "Could not move the built dnsfs binary to /usr/local/bin"
+if ! mv dnsfsd-util/dnsfs "$BIN_DIR" >/dev/null 2>&1; then
+    echo "Could not move the built dnsfs binary to $BIN_DIR"
     exit 1
 fi
 
-if ! mv daemon/dnsfsd /usr/local/bin/ >/dev/null 2>&1; then
-    echo "Could not move the built dnsfsd binary to /usr/local/bin"
+if ! mv daemon/dnsfsd "$BIN_DIR" >/dev/null 2>&1; then
+    echo "Could not move the built dnsfsd binary to $BIN_DIR"
     exit 1
 fi
 
 echo "Moved binaries"
-echo "Install finished! Run \`dnsfs setup\` before starting dnsfsd"
+echo "Install finished! Run \`dnsfs setup\` with root permission before starting dnsfsd"

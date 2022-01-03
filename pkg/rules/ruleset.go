@@ -7,12 +7,12 @@ import (
 
 // RuleSet is a set of IRule implementations.
 type RuleSet struct {
-	rules *map[IRule]struct{}
+	rules map[IRule]struct{}
 }
 
 // Size returns the number of rules in this set.
 func (s *RuleSet) Size() int {
-	return len(*s.rules)
+	return len(s.rules)
 }
 
 // Test returns true if a given domain should be sinkholed. False indicates it
@@ -21,20 +21,16 @@ func (s *RuleSet) Size() int {
 // Blacklists are tested after. If there are no whitelist matches and no
 // blacklist matches then no a false indication is given.
 func (s *RuleSet) Test(domain string) bool {
-	for v := range *s.rules {
-		if v.Whitelist() {
-			if v.Match(domain) {
-				return false
-			}
+	first := true
+loop:
+	for v := range s.rules {
+		if (first == v.Whitelist()) && v.Match(domain) {
+			return !first
 		}
 	}
-
-	for v := range *s.rules {
-		if !v.Whitelist() {
-			if v.Match(domain) {
-				return true
-			}
-		}
+	if first {
+		first = false
+		goto loop
 	}
 
 	return false

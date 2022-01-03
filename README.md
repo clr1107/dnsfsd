@@ -6,7 +6,7 @@ The server also has a configurable DNS cache.
 Note: lots of commands here will require root permission.
 
 ### Install
-To install this project it must be built using a Go compiler. Run `install.sh` to build & move the binaries to an appropriate location; then run `dnsfs setup`. This has been tested on Ubuntu and will, for now, only work on Linux systems.
+To install this project it must be built using a Go compiler. First clone the repository: `git clone https://github.com/clr1107/dnsfsd.git`. Then run the `install.sh` script to build & move the binaries to an appropriate location. Lastly, run `dnsfs setup`. This has been tested on Ubuntu and will, for now, only work on Linux systems.
 
 Once `dnsfs setup` has been run all directories and files (default configuration and systemd service file) will be created. From there one can start the server by using `dnsfsd` or `systemctl start dnsfsd`.
 

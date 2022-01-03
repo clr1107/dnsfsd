@@ -65,7 +65,7 @@ func RuleFromString(text string) (IRule, error) {
 type RuleFile struct {
 	Path   string   // Path to the file
 	Loaded bool     // Whether the file has been loadaed yet
-	Rules  *[]IRule // A pointer to a slice of rules that have been loaded
+	Rules  []*IRule // A pointer to a slice of rules that have been loaded
 }
 
 // Load loads a RuleFile and returns any errors.
@@ -77,7 +77,7 @@ func (p *RuleFile) Load() error {
 	}
 
 	scanner := bufio.NewScanner(f)
-	rules := make([]IRule, 0)
+	rules := make([]*IRule, 0)
 
 	for scanner.Scan() {
 		text := scanner.Text()
@@ -88,7 +88,7 @@ func (p *RuleFile) Load() error {
 		}
 
 		if rule != nil {
-			rules = append(rules, rule)
+			rules = append(rules, &rule)
 		}
 	}
 
@@ -100,7 +100,7 @@ func (p *RuleFile) Load() error {
 		return err
 	}
 
-	p.Rules = &rules
+	p.Rules = rules
 	p.Loaded = true
 
 	return nil
@@ -155,13 +155,13 @@ func CollectAllRules(files *[]RuleFile) *RuleSet {
 
 	for _, v := range *files {
 		if v.Loaded {
-			for _, rule := range *v.Rules {
-				l[rule] = struct{}{}
+			for _, rule := range v.Rules {
+				l[*rule] = struct{}{}
 			}
 		}
 	}
 
-	return &RuleSet{&l}
+	return &RuleSet{l}
 }
 
 // DownloadRuleFile downloads over http from a given URL to /etc/dnsfsd/rules
@@ -203,5 +203,5 @@ func DownloadRuleFile(url string, filename string) (int, error) {
 		return 0, err
 	}
 
-	return len(*ruleFile.Rules), nil
+	return len(ruleFile.Rules), nil
 }

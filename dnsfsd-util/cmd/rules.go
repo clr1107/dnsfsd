@@ -35,7 +35,7 @@ func runPatternsSubCommand(cmd *cobra.Command, args []string) error {
 	numOfRules := 0
 
 	for _, v := range *files {
-		numOfRules += len(*v.Rules)
+		numOfRules += len(v.Rules)
 	}
 
 	header := fmt.Sprintf("Matching %v rules", numOfRules)
@@ -45,11 +45,11 @@ func runPatternsSubCommand(cmd *cobra.Command, args []string) error {
 	for _, i := range *files {
 		println()
 
-		header := fmt.Sprintf("File '%v' (%v)", i.Path, len(*i.Rules))
+		header := fmt.Sprintf("File '%v' (%v)", i.Path, len(i.Rules))
 		println(header)
 		println(strings.Repeat("-", len(header)))
 
-		for k, j := range *i.Rules {
+		for k, j := range i.Rules {
 			fmt.Printf("%v)    %v\n", k+1, j)
 		}
 	}
